@@ -68,20 +68,22 @@ with app.app_context():
 # --- ROUTES ---
 
 @app.route('/')
+@app.route('/')
 def home():
     try:
+        # FORCE CREATE TABLES IF THEY ARE MISSING
+        db.create_all() 
+        
+        # Check if settings exists, if not create a default row
+        if not Settings.query.first():
+            db.session.add(Settings())
+            db.session.commit()
+
         settings = Settings.query.first()
-        search_query = request.args.get('search')
-        if search_query:
-            blogs = Blog.query.filter(
-                (Blog.title.contains(search_query)) | (Blog.product_name.contains(search_query))
-            ).all()
-        else:
-            blogs = Blog.query.order_by(Blog.id.desc()).all()
+        blogs = Blog.query.order_by(Blog.id.desc()).all()
         return render_template('index.html', blogs=blogs, settings=settings)
     except Exception as e:
-        # This will show the real error on your screen if it still fails
-        return f"<h1>Database Connection Error</h1><p>{str(e)}</p>"
+        return f"<h1>Database Setup in Progress</h1><p>Error: {str(e)}</p><p>Try refreshing this page in 10 seconds.</p>"
 
 @app.route('/post/<int:id>')
 def post(id):
