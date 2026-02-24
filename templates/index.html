@@ -47,7 +47,7 @@
         .product-card:hover { 
             transform: translateY(-10px); 
             box-shadow: 0 15px 30px rgba(0,0,0,0.1); 
-        }
+            }
         .card-img-top { 
             height: 220px; 
             object-fit: cover; 
@@ -134,3 +134,36 @@
                                 <a href="{{ url_for('edit', id=blog.id) }}" class="text-warning small text-decoration-none">
                                     <i class="bi bi-pencil-square"></i> Edit
                                 </a>
+                                <a href="{{ url_for('delete', id=blog.id) }}" class="text-danger small text-decoration-none" onclick="return confirm('Delete this post?')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center py-5">
+                    <i class="bi bi-cpu text-muted display-1"></i>
+                    <p class="text-muted mt-3">No gadgets found yet. Check back soon!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white py-5 mt-auto">
+        <div class="container text-center">
+            <h5 class="fw-bold mb-4">Follow <span class="text-primary">TECH</span>IND</h5>
+            <div class="d-flex justify-content-center gap-4 mb-4">
+                <a href="{{ settings.insta_link }}" class="text-white social-icon fs-3"><i class="bi bi-instagram"></i></a>
+                <a href="{{ settings.twitter_link }}" class="text-white social-icon fs-3"><i class="bi bi-twitter-x"></i></a>
+                <a href="{{ settings.youtube_link }}" class="text-white social-icon fs-3"><i class="bi bi-youtube"></i></a>
+            </div>
+            <p class="small opacity-50 mb-0">&copy; 2026 TECHIND | Designed in Lucknow</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
