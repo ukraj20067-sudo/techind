@@ -13,9 +13,10 @@ app.config['SECRET_KEY'] = 'TECHIND_ULTIMATE_2026'
 raw_password = 'utkarsh@))^'
 encoded_password = urllib.parse.quote_plus(raw_password)
 
-# FORCED TO AWS-1: This bypasses the Render Environment Variable glitch
+# Hardcoded to aws-1 to ensure no Tenant Mismatch errors
 app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://postgres.ovqlghzmdkelxxkehcba:{encoded_password}@aws-1-ap-south-1.pooler.supabase.com:6543/postgres"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {"pool_pre_ping": True, "pool_recycle": 300}
 
 # Initialize DB
 db = SQLAlchemy(app)
@@ -55,35 +56,38 @@ class Settings(db.Model):
     twitter_link = db.Column(db.String(200), default='#')
     youtube_link = db.Column(db.String(200), default='#')
 
-# Auto-create tables and initial settings
+# --- STARTUP DATABASE LOGIC ---
 with app.app_context():
     try:
         db.create_all()
+        # Initialize default settings if table is empty to prevent 'NoneType' errors
         if not Settings.query.first():
-            db.session.add(Settings())
+            db.session.add(Settings(primary_color='#0d6efd', font_style='Poppins'))
             db.session.commit()
+            print("Database & Default Settings Initialized.")
     except Exception as e:
         print(f"Startup DB Error: {e}")
 
-# --- ROUTES ---
-
-@app.route('/')
+# --- UPDATED HOME ROUTE ---
 @app.route('/')
 def home():
     try:
-        # FORCE CREATE TABLES IF THEY ARE MISSING
-        db.create_all() 
-        
-        # Check if settings exists, if not create a default row
-        if not Settings.query.first():
-            db.session.add(Settings())
-            db.session.commit()
-
         settings = Settings.query.first()
-        blogs = Blog.query.order_by(Blog.id.desc()).all()
+        search_query = request.args.get('search')
+        
+        if search_query:
+            blogs = Blog.query.filter(
+                (Blog.title.contains(search_query)) | (Blog.product_name.contains(search_query))
+            ).all()
+        else:
+            blogs = Blog.query.order_by(Blog.id.desc()).all()
+            
         return render_template('index.html', blogs=blogs, settings=settings)
     except Exception as e:
-        return f"<h1>Database Setup in Progress</h1><p>Error: {str(e)}</p><p>Try refreshing this page in 10 seconds.</p>"
+        # Prevents 502/500 errors by showing a status message instead
+        return f"<h1>TECHIND is waking up...</h1><p>The database is initializing. Please refresh in 30 seconds.</p>"
+
+# --- REMAINING ROUTES ---
 
 @app.route('/post/<int:id>')
 def post(id):
@@ -171,4 +175,4 @@ def update_theme():
     return redirect(url_for('home'))
 
 if __name__ == "__main__":
-    app.run(debug=True) 
+    app.run(debug=True)
