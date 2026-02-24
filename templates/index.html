@@ -54,29 +54,15 @@
             position: relative;
         }
 
-        /* Hover Transitions */
         .product-card:hover { 
             transform: translateY(-12px); 
             box-shadow: 0 20px 40px rgba(29, 107, 107, 0.15); 
         }
 
-        .card-img-container {
-            overflow: hidden;
-            height: 230px;
-        }
+        .card-img-container { overflow: hidden; height: 230px; }
+        .card-img-top { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+        .product-card:hover .card-img-top { transform: scale(1.1); }
 
-        .card-img-top { 
-            width: 100%;
-            height: 100%;
-            object-fit: cover; 
-            transition: transform 0.6s ease;
-        }
-
-        .product-card:hover .card-img-top {
-            transform: scale(1.1);
-        }
-
-        /* Category Badge */
         .badge-category {
             background-color: var(--brand-teal);
             color: var(--brand-cream);
@@ -91,7 +77,6 @@
             z-index: 10;
         }
 
-        /* Buttons Styling */
         .btn-buy { 
             background-color: var(--brand-teal) !important; 
             color: var(--brand-cream) !important;
@@ -100,33 +85,13 @@
             border-radius: 10px;
             transition: 0.3s;
         }
-        .btn-buy:hover { 
-            background-color: transparent !important;
-            color: var(--brand-teal) !important;
-        }
+        .btn-buy:hover { background-color: transparent !important; color: var(--brand-teal) !important; }
 
-        /* Footer Styling */
-        footer { 
-            background-color: var(--brand-teal) !important; 
-            color: var(--brand-cream) !important;
-            padding: 60px 0 30px;
-        }
-        .social-icon { 
-            color: var(--brand-cream); 
-            font-size: 1.5rem;
-            transition: 0.3s ease; 
-        }
-        .social-icon:hover { 
-            color: white; 
-            transform: translateY(-5px); 
-        }
+        footer { background-color: var(--brand-teal) !important; color: var(--brand-cream) !important; padding: 60px 0 30px; }
+        .social-icon { color: var(--brand-cream); font-size: 1.5rem; transition: 0.3s ease; }
+        .social-icon:hover { color: white; transform: translateY(-5px); }
 
-        /* Search Bar */
-        .search-container .form-control {
-            border: 1px solid var(--brand-cream);
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
+        .search-container .form-control { border: 1px solid var(--brand-cream); background: rgba(255,255,255,0.1); color: white; }
         .search-container .form-control::placeholder { color: rgba(255,255,255,0.6); }
     </style>
 </head>
@@ -149,12 +114,12 @@
                 <ul class="navbar-nav flex-row align-items-center">
                     {% if current_user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link btn btn-outline-light btn-sm px-3 me-2" href="/admin">
+                            <a class="nav-link btn btn-outline-light btn-sm px-3 me-2" href="/admin?tab=post">
                                 <i class="bi bi-plus-circle me-1"></i> Post
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link btn btn-outline-light btn-sm px-2 me-2" href="/admin#site-settings" title="Site Settings">
+                            <a class="nav-link btn btn-outline-light btn-sm px-2 me-2" href="/admin?tab=settings" title="Site Settings">
                                 <i class="bi bi-gear-fill"></i>
                             </a>
                         </li>
@@ -198,8 +163,8 @@
                             
                             {% if current_user.is_authenticated %}
                             <div class="mt-3 pt-3 border-top d-flex justify-content-center gap-3">
-                                <a href="{{ url_for('edit', id=blog.id) }}" class="text-secondary small" title="Edit"><i class="bi bi-pencil"></i></a>
-                                <a href="{{ url_for('delete', id=blog.id) }}" class="text-danger small" title="Delete" onclick="return confirm('Delete this post?')"><i class="bi bi-trash"></i></a>
+                                <a href="{{ url_for('edit', id=blog.id) }}" class="text-secondary small"><i class="bi bi-pencil"></i></a>
+                                <a href="{{ url_for('delete', id=blog.id) }}" class="text-danger small" onclick="return confirm('Delete?')"><i class="bi bi-trash"></i></a>
                             </div>
                             {% endif %}
                         </div>
@@ -223,7 +188,7 @@
                 <a href="{{ settings.twitter_link }}" class="social-icon"><i class="bi bi-twitter-x"></i></a>
                 <a href="{{ settings.youtube_link }}" class="social-icon"><i class="bi bi-youtube"></i></a>
             </div>
-            <p class="small mb-0" style="opacity: 0.7;">&copy; 2026 TECHIND Lucknow. Excellence in Tech Curation.</p>
+            <p class="small mb-0" style="opacity: 0.7;">&copy; 2026 TECHIND Lucknow.</p>
         </div>
     </footer>
 

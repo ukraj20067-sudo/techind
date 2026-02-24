@@ -3,133 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TECHIND | Admin Dashboard</title>
+    <title>TECHIND | Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
         :root { --brand-teal: #1D6B6B; --brand-cream: #EFDBAA; }
         body { background-color: #f4f7f6; font-family: 'Poppins', sans-serif; }
-        .nav-tabs .nav-link { color: var(--brand-teal); font-weight: 600; border: none; }
-        .nav-tabs .nav-link.active { 
-            color: white; 
-            background-color: var(--brand-teal); 
-            border-radius: 10px 10px 0 0; 
-        }
-        .admin-card { border: none; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .btn-save { background: var(--brand-teal); color: var(--brand-cream); border: none; font-weight: 600; }
-        .btn-save:hover { opacity: 0.9; color: white; }
+        .admin-card { border: none; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); background: white; }
+        .btn-brand { background: var(--brand-teal); color: var(--brand-cream); font-weight: 600; border: none; }
+        .btn-brand:hover { background: #144d4d; color: white; }
+        .sidebar-link { color: var(--brand-teal); text-decoration: none; font-weight: 600; padding: 10px 15px; border-radius: 8px; display: block; transition: 0.3s; }
+        .sidebar-link.active { background: var(--brand-teal); color: white; }
     </style>
 </head>
 <body>
 
 <div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold" style="color: var(--brand-teal);">Admin Dashboard</h2>
-        <a href="/" class="btn btn-outline-secondary btn-sm"><i class="bi bi-house"></i> Back to Site</a>
-    </div>
-
-    <ul class="nav nav-tabs mb-4 border-0" id="adminTabs" role="tablist">
-        <li class="nav-item">
-            <button class="nav-link active px-4" id="post-tab" data-bs-toggle="tab" data-bs-target="#post-content" type="button">
-                <i class="bi bi-pencil-square me-2"></i>Post Content
-            </button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link px-4" id="settings-tab" data-bs-toggle="tab" data-bs-target="#site-settings" type="button">
-                <i class="bi bi-gear-fill me-2"></i>Site Settings
-            </button>
-        </li>
-    </ul>
-
-    <div class="tab-content" id="adminTabsContent">
-        <div class="tab-pane fade show active" id="post-content" role="tabpanel">
-            <div class="card admin-card p-4">
-                <h4 class="mb-4">Create New Product Review</h4>
-                <form action="/admin" method="POST" enctype="multipart/form-data">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold">Blog Title</label>
-                            <input type="text" name="title" class="form-control" placeholder="e.g. Best Gaming Laptop 2026" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold">Product Name</label>
-                            <input type="text" name="product_name" class="form-control" placeholder="e.g. Lenovo LOQ 15" required>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Category</label>
-                        <input type="text" name="category" class="form-control" placeholder="Laptops, Audio, Smartphones">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Content</label>
-                        <textarea name="content" class="form-control" rows="6" placeholder="Describe the product features and your verdict..." required></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Affiliate Link</label>
-                        <input type="text" name="affiliate_link" class="form-control" placeholder="Paste Amazon/Flipkart link here">
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label small fw-bold">Upload Images</label>
-                        <input type="file" name="thumbnails" class="form-control" multiple>
-                    </div>
-                    <button type="submit" class="btn btn-save w-100 py-3">Publish Review</button>
-                </form>
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <h3 class="fw-bold mb-4" style="color: var(--brand-teal);">Dashboard</h3>
+            <div class="d-grid gap-2">
+                <a href="/admin?tab=post" class="sidebar-link {% if request.args.get('tab') != 'settings' %}active{% endif %}">
+                    <i class="bi bi-pencil-square me-2"></i> Post Content
+                </a>
+                <a href="/admin?tab=settings" class="sidebar-link {% if request.args.get('tab') == 'settings' %}active{% endif %}">
+                    <i class="bi bi-gear-fill me-2"></i> Site Settings
+                </a>
+                <hr>
+                <a href="/" class="sidebar-link"><i class="bi bi-house me-2"></i> View Site</a>
             </div>
         </div>
 
-        <div class="tab-pane fade" id="site-settings" role="tabpanel">
-            <div class="card admin-card p-4">
-                <h4 class="mb-4">Website Appearance & Socials</h4>
-                <form action="/admin/settings" method="POST">
-                    <div class="row mb-4">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold">Primary Brand Color</label>
-                            <input type="color" name="primary_color" class="form-control form-control-color w-100" value="{{ settings.primary_color }}">
+        <div class="col-md-9">
+            {% if request.args.get('tab') == 'settings' %}
+                <div class="card admin-card p-4 animate__animated animate__fadeIn">
+                    <h4 class="fw-bold mb-4"><i class="bi bi-gear-fill me-2"></i>Website Appearance</h4>
+                    <form action="/admin/settings" method="POST">
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label small fw-bold">Primary Brand Color</label>
+                                <input type="color" name="primary_color" class="form-control form-control-color w-100" value="{{ settings.primary_color }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label small fw-bold">Hero Background</label>
+                                <input type="color" name="hero_bg_color" class="form-control form-control-color w-100" value="{{ settings.hero_bg_color }}">
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold">Hero Background</label>
-                            <input type="color" name="hero_bg_color" class="form-control form-control-color w-100" value="{{ settings.hero_bg_color }}">
+                        <label class="form-label small fw-bold">Social Media Profiles</label>
+                        <input type="text" name="insta_link" class="form-control mb-2" placeholder="Instagram URL" value="{{ settings.insta_link }}">
+                        <input type="text" name="twitter_link" class="form-control mb-2" placeholder="Twitter URL" value="{{ settings.twitter_link }}">
+                        <input type="text" name="youtube_link" class="form-control mb-4" placeholder="YouTube URL" value="{{ settings.youtube_link }}">
+                        <button type="submit" class="btn btn-brand w-100 py-3">Update Site Settings</button>
+                    </form>
+                </div>
+            {% else %}
+                <div class="card admin-card p-4 animate__animated animate__fadeIn">
+                    <h4 class="fw-bold mb-4"><i class="bi bi-pencil-square me-2"></i>Create New Review</h4>
+                    <form action="/admin" method="POST" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <input type="text" name="title" class="form-control" placeholder="Blog Title" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <input type="text" name="product_name" class="form-control" placeholder="Product Name" required>
+                            </div>
                         </div>
-                    </div>
-                    <hr>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Instagram URL</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-instagram"></i></span>
-                            <input type="text" name="insta_link" class="form-control" value="{{ settings.insta_link }}">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Twitter URL</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-twitter-x"></i></span>
-                            <input type="text" name="twitter_link" class="form-control" value="{{ settings.twitter_link }}">
-                        </div>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label small fw-bold">YouTube URL</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-youtube"></i></span>
-                            <input type="text" name="youtube_link" class="form-control" value="{{ settings.youtube_link }}">
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-save w-100 py-3">Update Site Appearance</button>
-                </form>
-            </div>
+                        <input type="text" name="category" class="form-control mb-3" placeholder="Category">
+                        <textarea name="content" class="form-control mb-3" rows="6" placeholder="Write the content..." required></textarea>
+                        <input type="text" name="affiliate_link" class="form-control mb-3" placeholder="Affiliate Link">
+                        <input type="file" name="thumbnails" class="form-control mb-4" multiple>
+                        <button type="submit" class="btn btn-brand w-100 py-3">Publish Review</button>
+                    </form>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        if(window.location.hash === '#site-settings') {
-            var triggerEl = document.querySelector('#settings-tab');
-            bootstrap.Tab.getInstance(triggerEl) || new bootstrap.Tab(triggerEl).show();
-        }
-    });
-</script>
 
 </body>
 </html>
