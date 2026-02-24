@@ -13,7 +13,7 @@ raw_password = 'utkarsh@))^'
 encoded_password = urllib.parse.quote_plus(raw_password)
 
 # Replace with your actual Supabase DB connection string if different
-app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://postgres:{encoded_password}@aws-0-ap-south-1.pooler.supabase.com:5432/postgres'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SECRET_KEY'] = 'TECHIND_ULTIMATE_2026'
 
 # SUPABASE IMAGE STORAGE CONFIG
