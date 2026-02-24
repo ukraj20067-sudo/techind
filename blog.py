@@ -13,11 +13,11 @@ app.config['SECRET_KEY'] = 'TECHIND_ULTIMATE_2026'
 raw_password = 'utkarsh@))^'
 encoded_password = urllib.parse.quote_plus(raw_password)
 
-# This is the single, corrected connection string
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or f'postgresql://postgres.ovqlghzmdkelxxkehcba:{encoded_password}@aws-1-ap-south-1.pooler.supabase.com:6543/postgres'
+# FORCED TO AWS-1: This bypasses the Render Environment Variable glitch
+app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://postgres.ovqlghzmdkelxxkehcba:{encoded_password}@aws-1-ap-south-1.pooler.supabase.com:6543/postgres"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Initialize DB once
+# Initialize DB
 db = SQLAlchemy(app)
 
 # SUPABASE IMAGE STORAGE CONFIG
@@ -55,11 +55,10 @@ class Settings(db.Model):
     twitter_link = db.Column(db.String(200), default='#')
     youtube_link = db.Column(db.String(200), default='#')
 
-# Auto-create tables on startup
+# Auto-create tables and initial settings
 with app.app_context():
     try:
         db.create_all()
-        # Ensure at least one settings row exists so it doesn't crash
         if not Settings.query.first():
             db.session.add(Settings())
             db.session.commit()
@@ -81,7 +80,8 @@ def home():
             blogs = Blog.query.order_by(Blog.id.desc()).all()
         return render_template('index.html', blogs=blogs, settings=settings)
     except Exception as e:
-        return f"<h1>Database Connection Error</h1><p>{str(e)}</p><p>Check if your Supabase password or Port 6543 is correct.</p>"
+        # This will show the real error on your screen if it still fails
+        return f"<h1>Database Connection Error</h1><p>{str(e)}</p>"
 
 @app.route('/post/<int:id>')
 def post(id):
@@ -169,4 +169,4 @@ def update_theme():
     return redirect(url_for('home'))
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True) 
