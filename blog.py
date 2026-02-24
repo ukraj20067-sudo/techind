@@ -70,24 +70,16 @@ with app.app_context():
 
 # --- UPDATED HOME ROUTE ---
 @app.route('/')
-@app.route('/')
 def home():
     try:
-        # Check if we can even talk to the DB
+        # Just fetch, don't try to create anything here anymore
         settings = Settings.query.first()
         blogs = Blog.query.order_by(Blog.id.desc()).all()
         return render_template('index.html', blogs=blogs, settings=settings)
     except Exception as e:
-        # If the table doesn't exist yet, try to create it ONCE
-        try:
-            db.create_all()
-            if not Settings.query.first():
-                db.session.add(Settings(primary_color='#0d6efd', font_style='Poppins'))
-                db.session.commit()
-            return "<h1>Database Initialized!</h1><p>Tables were missing, but I've created them. Please refresh now.</p>"
-        except:
-            return "<h1>TECHIND is waking up...</h1><p>Please refresh in 30 seconds.</p>"
-
+        # If it's still loading, show exactly why
+        print(f"Home Error: {e}")
+        return "<h1>TECHIND is finishing setup...</h1><p>Please refresh in 10 seconds.</p>"
 # --- REMAINING ROUTES ---
 
 @app.route('/post/<int:id>')
