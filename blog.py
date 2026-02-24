@@ -154,10 +154,7 @@ def update_theme():
     db.session.commit()
     return redirect(url_for('home'))
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     with app.app_context():
-        db.create_all()
-        if not Settings.query.first():
-            db.session.add(Settings())
-            db.session.commit()
+        db.create_all()  # This creates the tables in Supabase automatically
     app.run(debug=True)
