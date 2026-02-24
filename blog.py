@@ -7,21 +7,23 @@ from werkzeug.utils import secure_filename
 from supabase import create_client
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'TECHIND_ULTIMATE_2026'
 
-# --- CLOUD CONFIGURATION ---
+# --- DATABASE CONFIGURATION ---
 raw_password = 'utkarsh@))^'
 encoded_password = urllib.parse.quote_plus(raw_password)
 
-# Replace with your actual Supabase DB connection string if different
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
-app.config['SECRET_KEY'] = 'TECHIND_ULTIMATE_2026'
+# This is the single, corrected connection string
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or f'postgresql://postgres.ovqlghzmdkelxxkehcba:{encoded_password}@aws-1-ap-south-1.pooler.supabase.com:6543/postgres'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Initialize DB once
+db = SQLAlchemy(app)
 
 # SUPABASE IMAGE STORAGE CONFIG
 SUPABASE_URL = "https://ovqlghzmdkelxxkehcba.supabase.co"
 SUPABASE_KEY = "sb_publishable_C4pYZQ43SoMUNiwHK6WGAw_gPXyZnLV"
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
-db = SQLAlchemy(app)
 
 # --- LOGIN SYSTEM ---
 login_manager = LoginManager()
@@ -53,26 +55,38 @@ class Settings(db.Model):
     twitter_link = db.Column(db.String(200), default='#')
     youtube_link = db.Column(db.String(200), default='#')
 
+# Auto-create tables on startup
+with app.app_context():
+    try:
+        db.create_all()
+        # Ensure at least one settings row exists so it doesn't crash
+        if not Settings.query.first():
+            db.session.add(Settings())
+            db.session.commit()
+    except Exception as e:
+        print(f"Startup DB Error: {e}")
+
 # --- ROUTES ---
 
 @app.route('/')
 def home():
-    settings = Settings.query.first()
-    search_query = request.args.get('search')
-    if search_query:
-        # Filter blogs based on title or product name
-        blogs = Blog.query.filter(
-            (Blog.title.contains(search_query)) | (Blog.product_name.contains(search_query))
-        ).all()
-    else:
-        blogs = Blog.query.order_by(Blog.id.desc()).all()
-    return render_template('index.html', blogs=blogs, settings=settings)
+    try:
+        settings = Settings.query.first()
+        search_query = request.args.get('search')
+        if search_query:
+            blogs = Blog.query.filter(
+                (Blog.title.contains(search_query)) | (Blog.product_name.contains(search_query))
+            ).all()
+        else:
+            blogs = Blog.query.order_by(Blog.id.desc()).all()
+        return render_template('index.html', blogs=blogs, settings=settings)
+    except Exception as e:
+        return f"<h1>Database Connection Error</h1><p>{str(e)}</p><p>Check if your Supabase password or Port 6543 is correct.</p>"
 
 @app.route('/post/<int:id>')
 def post(id):
     settings = Settings.query.first()
     blog = Blog.query.get_or_404(id)
-    # Split the comma-separated image URLs back into a list
     image_list = blog.images.split(',')
     return render_template('post.html', blog=blog, image_list=image_list, settings=settings)
 
@@ -155,6 +169,4 @@ def update_theme():
     return redirect(url_for('home'))
 
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()  # This creates the tables in Supabase automatically
     app.run(debug=True)
