@@ -1,5 +1,6 @@
 import os
 import urllib.parse
+import time
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -13,12 +14,11 @@ app.config['SECRET_KEY'] = 'TECHIND_ULTIMATE_2026'
 raw_password = 'utkarsh@))^'
 encoded_password = urllib.parse.quote_plus(raw_password)
 
-# Hardcoded to aws-1 to ensure no Tenant Mismatch errors
+# Database connection - Fixed for Render/Supabase stability
 app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://postgres.ovqlghzmdkelxxkehcba:{encoded_password}@aws-1-ap-south-1.pooler.supabase.com:6543/postgres"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {"pool_pre_ping": True, "pool_recycle": 300}
 
-# Initialize DB
 db = SQLAlchemy(app)
 
 # SUPABASE IMAGE STORAGE CONFIG
@@ -49,8 +49,8 @@ class Blog(db.Model):
 
 class Settings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    primary_color = db.Column(db.String(20), default='#0d6efd') 
-    hero_bg_color = db.Column(db.String(20), default='#1a1a1a') 
+    primary_color = db.Column(db.String(20), default='#1D6B6B') 
+    hero_bg_color = db.Column(db.String(20), default='#1D6B6B') 
     font_style = db.Column(db.String(50), default='Poppins')
     insta_link = db.Column(db.String(200), default='#')
     twitter_link = db.Column(db.String(200), default='#')
@@ -60,27 +60,22 @@ class Settings(db.Model):
 with app.app_context():
     try:
         db.create_all()
-        # Initialize default settings if table is empty to prevent 'NoneType' errors
         if not Settings.query.first():
-            db.session.add(Settings(primary_color='#0d6efd', font_style='Poppins'))
+            db.session.add(Settings(primary_color='#1D6B6B', hero_bg_color='#1D6B6B', font_style='Poppins'))
             db.session.commit()
-            print("Database & Default Settings Initialized.")
     except Exception as e:
         print(f"Startup DB Error: {e}")
 
-# --- UPDATED HOME ROUTE ---
+# --- ROUTES ---
+
 @app.route('/')
 def home():
     try:
-        # Just fetch, don't try to create anything here anymore
         settings = Settings.query.first()
         blogs = Blog.query.order_by(Blog.id.desc()).all()
         return render_template('index.html', blogs=blogs, settings=settings)
     except Exception as e:
-        # If it's still loading, show exactly why
-        print(f"Home Error: {e}")
-        return "<h1>TECHIND is finishing setup...</h1><p>Please refresh in 10 seconds.</p>"
-# --- REMAINING ROUTES ---
+        return "<h1>TECHIND is waking up...</h1><p>Please refresh in 10 seconds.</p>"
 
 @app.route('/post/<int:id>')
 def post(id):
@@ -108,25 +103,55 @@ def logout():
 def admin():
     settings = Settings.query.first()
     if request.method == 'POST':
-        files = request.files.getlist('thumbnails')
-        urls = []
-        for file in files:
-            if file:
-                filename = secure_filename(file.filename)
-                file_data = file.read()
-                supabase.storage.from_("product-images").upload(filename, file_data, {"content-type": file.content_type})
-                res = supabase.storage.from_("product-images").get_public_url(filename)
-                urls.append(res.public_url if hasattr(res, 'public_url') else res)
-        
-        image_string = ",".join(urls) if urls else 'https://via.placeholder.com/300'
-        new_post = Blog(
-            images=image_string, title=request.form['title'],
-            product_name=request.form['product_name'], category=request.form['category'],
-            content=request.form['content'], affiliate_link=request.form['affiliate_link']
-        )
-        db.session.add(new_post)
-        db.session.commit()
-        return redirect(url_for('home'))
+        try:
+            files = request.files.getlist('thumbnails')
+            urls = []
+            
+            for file in files:
+                if file and file.filename != '':
+                    # Create unique name to avoid Supabase collisions
+                    filename = secure_filename(file.filename)
+                    unique_name = f"{int(time.time())}_{os.urandom(2).hex()}_{filename}"
+                    file_data = file.read()
+                    
+                    # 1. Upload to Supabase (Bucket must be 'product-images')
+                    supabase.storage.from_("product-images").upload(
+                        path=unique_name, 
+                        file=file_data, 
+                        file_options={"content-type": file.content_type}
+                    )
+                    
+                    # 2. Get Public URL
+                    res = supabase.storage.from_("product-images").get_public_url(unique_name)
+                    
+                    # Version-agnostic URL extraction
+                    if hasattr(res, 'public_url'):
+                        public_url = res.public_url
+                    else:
+                        public_url = str(res)
+                        
+                    urls.append(public_url)
+            
+            image_string = ",".join(urls) if urls else 'https://via.placeholder.com/300'
+            
+            # 3. Save to Postgres
+            new_post = Blog(
+                images=image_string, 
+                title=request.form['title'],
+                product_name=request.form['product_name'], 
+                category=request.form['category'],
+                content=request.form['content'], 
+                affiliate_link=request.form['affiliate_link']
+            )
+            db.session.add(new_post)
+            db.session.commit()
+            return redirect(url_for('home'))
+            
+        except Exception as e:
+            db.session.rollback()
+            # Returns exact error message to help you debug in real-time
+            return f"<h1>Upload Error</h1><p>{str(e)}</p><a href='/admin'>Go Back</a>"
+
     return render_template('admin.html', settings=settings)
 
 @app.route('/edit/<int:id>', methods=['GET', 'POST'])
@@ -159,13 +184,12 @@ def update_theme():
     if 'primary_color' in request.form:
         settings.primary_color = request.form.get('primary_color')
         settings.hero_bg_color = request.form.get('hero_bg_color')
-        settings.font_style = request.form.get('font_style')
     if 'insta_link' in request.form:
         settings.insta_link = request.form.get('insta_link')
         settings.twitter_link = request.form.get('twitter_link')
         settings.youtube_link = request.form.get('youtube_link')
     db.session.commit()
-    return redirect(url_for('home'))
+    return redirect(url_for('admin', tab='settings'))
 
 if __name__ == "__main__":
     app.run(debug=True)
