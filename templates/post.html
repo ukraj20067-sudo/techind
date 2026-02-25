@@ -10,7 +10,26 @@
         :root { --brand-teal: #1D6B6B; --brand-cream: #EFDBAA; }
         body { font-family: 'Poppins', sans-serif; background: #fff; }
         .post-header { background: var(--brand-teal); color: var(--brand-cream); padding: 80px 0; border-bottom: 5px solid var(--brand-cream); }
-        .main-img { border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; object-fit: cover; }
+        
+        /* --- UPDATED IMAGE STYLES --- */
+        .main-img-container {
+            max-height: 500px; /* Cap the height so it's not too big */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f8f9fa; /* Subtle background for transparent images */
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        .main-img { 
+            max-width: 100%; 
+            max-height: 500px; 
+            object-fit: contain; /* Ensures the whole image is visible, not cropped */
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
+        }
+        /* --------------------------- */
+
         .thumb-img { width: 70px; height: 70px; object-fit: cover; border-radius: 10px; cursor: pointer; margin: 5px; border: 2px solid transparent; transition: 0.3s; }
         .thumb-img:hover { border-color: var(--brand-teal); transform: scale(1.1); }
         .content-area { line-height: 1.9; font-size: 1.15rem; color: #333; white-space: pre-wrap; }
@@ -31,7 +50,10 @@
         <div class="row justify-content-center">
             <div class="col-lg-9">
                 <div class="text-center mb-5">
-                    <img id="mainImage" src="{{ image_list[0] }}" class="main-img mb-4">
+                    <div class="main-img-container mb-4">
+                        <img id="mainImage" src="{{ image_list[0] }}" class="main-img">
+                    </div>
+
                     {% if image_list|length > 1 %}
                     <div class="d-flex justify-content-center flex-wrap">
                         {% for img in image_list %}
