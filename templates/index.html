@@ -3,178 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TECHIND | Premium Tech Reviews</title>
-    
+    <title>TECHIND | Tech Reviews India</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    
     <style>
-        :root {
-            --brand-teal: #1D6B6B;
-            --brand-cream: #EFDBAA;
-            --bg-white: #ffffff;
-            --text-dark: #2c3e50;
-        }
-
-        body { 
-            font-family: 'Poppins', sans-serif; 
-            background-color: var(--bg-white); 
-            color: var(--text-dark);
-            overflow-x: hidden;
-        }
-
-        /* Navbar */
-        .navbar { 
-            background-color: var(--brand-teal) !important;
-            border-bottom: 3px solid var(--brand-cream);
-            padding: 15px 0;
-        }
-        .navbar-brand { font-family: 'Montserrat', sans-serif; color: var(--brand-cream) !important; }
-        .nav-link { color: white !important; transition: 0.3s; }
-        .nav-link:hover { color: var(--brand-cream) !important; }
-
-        /* Hero */
-        .hero { 
-            background: linear-gradient(135deg, var(--brand-teal) 0%, #144d4d 100%);
-            color: var(--brand-cream); 
-            padding: 100px 0; 
-            margin-bottom: 60px;
-            clip-path: polygon(0 0, 100% 0, 100% 90%, 0% 100%);
-        }
-
-        /* Cards & Hover Effects */
-        .product-card { 
-            border: 1px solid rgba(0,0,0,0.05);
-            border-radius: 20px; 
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); 
-            background: white;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .product-card:hover { 
-            transform: translateY(-8px); 
-            box-shadow: 0 15px 30px rgba(29, 107, 107, 0.12); 
-        }
-
-        .card-img-container {
-            overflow: hidden;
-            height: 160px; /* SHRUNK THUMBNAIL AS REQUESTED */
-        }
-
-        .card-img-top { 
-            width: 100%;
-            height: 100%;
-            object-fit: cover; 
-            transition: transform 0.6s ease;
-        }
-
-        .product-card:hover .card-img-top { transform: scale(1.05); }
-
-        .badge-category {
-            background-color: var(--brand-teal);
-            color: var(--brand-cream);
-            font-size: 0.65rem;
-            text-transform: uppercase;
-            padding: 4px 10px;
-            border-radius: 50px;
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            z-index: 10;
-        }
-
-        .btn-buy { 
-            background-color: var(--brand-teal) !important; 
-            color: var(--brand-cream) !important;
-            border: 2px solid var(--brand-teal);
-            font-weight: 600;
-            border-radius: 10px;
-            transition: 0.3s;
-        }
-        .btn-buy:hover { background-color: transparent !important; color: var(--brand-teal) !important; }
-
-        footer { background-color: var(--brand-teal) !important; color: var(--brand-cream) !important; padding: 50px 0 20px; }
+        :root { --brand-teal: #1D6B6B; --brand-cream: #EFDBAA; }
+        body { font-family: 'Poppins', sans-serif; background: #fff; }
+        .navbar { background: var(--brand-teal) !important; border-bottom: 3px solid var(--brand-cream); padding: 15px 0; }
+        .hero { background: var(--brand-teal); color: var(--brand-cream); padding: 100px 0; clip-path: polygon(0 0, 100% 0, 100% 90%, 0% 100%); }
+        .product-card { border-radius: 20px; transition: 0.4s; border: 1px solid #eee; overflow: hidden; }
+        .product-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+        .card-img-container { height: 160px; overflow: hidden; }
+        .card-img-top { height: 100%; width: 100%; object-fit: cover; }
+        .btn-buy { background: #28a745 !important; color: white !important; font-weight: 700; border-radius: 10px; border: none; }
+        .store-badge { font-size: 0.7rem; background: #f1f3f5; padding: 2px 8px; border-radius: 5px; color: var(--brand-teal); text-decoration: none; margin-right: 5px; }
     </style>
 </head>
 <body>
-
-    <nav class="navbar navbar-dark sticky-top shadow-sm">
+    <nav class="navbar navbar-dark sticky-top py-3">
         <div class="container d-flex justify-content-between align-items-center">
             <a class="navbar-brand fw-bold fs-3" href="/">TECHIND</a>
-            
-            <ul class="navbar-nav flex-row align-items-center">
+            <div>
                 {% if current_user.is_authenticated %}
-                    <li class="nav-item"><a class="nav-link btn btn-outline-light btn-sm px-3 me-2" href="/admin?tab=post">Post</a></li>
-                    <li class="nav-item"><a class="nav-link btn btn-outline-light btn-sm px-2 me-2" href="/admin?tab=settings"><i class="bi bi-gear-fill"></i></a></li>
-                    <li class="nav-item"><a class="nav-link text-white fs-5" href="/logout"><i class="bi bi-power"></i></a></li>
+                <a href="/admin" class="btn btn-outline-light btn-sm me-2">Admin</a>
+                <a href="/logout" class="text-white"><i class="bi bi-power"></i></a>
                 {% else %}
-                    <li class="nav-item"><a class="nav-link fw-bold border border-light rounded px-3" href="/login">LOGIN</a></li>
+                <a href="/login" class="text-white text-decoration-none fw-bold">LOGIN</a>
                 {% endif %}
-            </ul>
+            </div>
         </div>
     </nav>
 
     <div class="hero text-center">
         <div class="container">
-            <h1 class="display-3 fw-bold mb-2 text-uppercase">TECHIND</h1>
-            <p class="lead opacity-75">Lucknow's Modern Tech Hub & Curation</p>
+            <h1 class="display-3 fw-bold">TECHIND</h1>
+            <p class="lead">Premium Tech Reviews & Price Comparisons India</p>
         </div>
     </div>
 
     <div class="container mb-5">
         <div class="row g-4">
-            {% if blogs %}
-                {% for blog in blogs %}
-                <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                    <div class="card h-100 product-card">
-                        <span class="badge-category">{{ blog.category }}</span>
-                        <div class="card-img-container">
-                            <a href="{{ url_for('post', id=blog.id) }}">
-                                <img src="{{ blog.images.split(',')[0] }}" class="card-img-top" alt="{{ blog.product_name }}">
-                            </a>
-                        </div>
+            {% for blog in blogs %}
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="card h-100 product-card">
+                    <div class="card-img-container">
+                        <a href="{{ url_for('post', id=blog.id) }}">
+                            <img src="{{ blog.images.split(',')[0] }}" class="card-img-top">
+                        </a>
+                    </div>
+                    <div class="card-body p-4 d-flex flex-column">
+                        <h4 class="fw-bold mb-2" style="font-size: 1.3rem; line-height: 1.2;">{{ blog.title }}</h4>
+                        <p class="text-muted small flex-grow-1">{{ blog.content[:100] }}...</p>
                         
-                        <div class="card-body p-4 d-flex flex-column">
-                            <h4 class="fw-bold mb-2" style="font-size: 1.35rem; line-height: 1.2;">{{ blog.title[:65] }}</h4>
-                            
-                            <p class="text-muted small flex-grow-1" style="line-height: 1.5;">
-                                {{ blog.content[:100] }}{% if blog.content|length > 100 %}...{% endif %}
-                            </p>
-                            
-                            <a href="{{ blog.affiliate_link }}" target="_blank" class="btn btn-buy w-100 py-2 mt-3">View Deal</a>
-                            
-                            {% if current_user.is_authenticated %}
-                            <div class="mt-3 pt-3 border-top d-flex justify-content-center gap-3">
-                                <a href="{{ url_for('edit', id=blog.id) }}" class="text-secondary small"><i class="bi bi-pencil"></i></a>
-                                <a href="{{ url_for('delete', id=blog.id) }}" class="text-danger small" onclick="return confirm('Delete?')"><i class="bi bi-trash"></i></a>
-                            </div>
-                            {% endif %}
+                        <div class="mb-3 d-flex flex-wrap gap-1">
+                            {% if blog.store1_name %}<span class="store-badge">{{ blog.store1_name }}</span>{% endif %}
+                            {% if blog.store2_name %}<span class="store-badge">{{ blog.store2_name }}</span>{% endif %}
                         </div>
+
+                        <a href="{{ blog.affiliate_link }}" target="_blank" class="btn btn-buy w-100 py-2 mt-auto">Best Deal</a>
                     </div>
                 </div>
-                {% endfor %}
-            {% else %}
-                <div class="col-12 text-center py-5">
-                    <p class="text-muted">No reviews posted yet.</p>
-                </div>
-            {% endif %}
+            </div>
+            {% endfor %}
         </div>
     </div>
 
-    <footer>
-        <div class="container text-center">
-            <h4 class="fw-bold mb-4">TECHIND</h4>
-            <div class="d-flex justify-content-center gap-4 mb-4">
-                <a href="{{ settings.insta_link }}" class="text-white fs-3"><i class="bi bi-instagram"></i></a>
-                <a href="{{ settings.twitter_link }}" class="text-white fs-3"><i class="bi bi-twitter-x"></i></a>
-                <a href="{{ settings.youtube_link }}" class="text-white fs-3"><i class="bi bi-youtube"></i></a>
-            </div>
-            <p class="small opacity-50 mb-0">&copy; 2026 TECHIND | Lucknow</p>
-        </div>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <footer class="py-5 text-center bg-dark text-white"><p>&copy; 2026 TECHIND | India</p></footer>
 </body>
 </html>

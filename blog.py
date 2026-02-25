@@ -24,7 +24,7 @@ SUPABASE_URL = "https://ovqlghzmdkelxxkehcba.supabase.co"
 SUPABASE_KEY = "sb_publishable_C4pYZQ43SoMUNiwHK6WGAw_gPXyZnLV"
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# --- DATABASE MODELS ---
+# --- MODELS ---
 class Blog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     images = db.Column(db.Text) 
@@ -32,7 +32,9 @@ class Blog(db.Model):
     product_name = db.Column(db.String(100), nullable=False)
     category = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    # Store Slots
+    affiliate_link = db.Column(db.String(500)) # This is the Green "Best Buy" link
+    
+    # Comparison Table Slots
     store1_name = db.Column(db.String(50))
     store1_price = db.Column(db.String(20))
     store1_link = db.Column(db.String(500))
@@ -84,7 +86,6 @@ def admin():
             urls = []
             for file in files:
                 if file and file.filename != '':
-                    # Unique naming to prevent 403 or overwrite errors
                     unique_name = f"{int(time.time())}_{os.urandom(2).hex()}_{secure_filename(file.filename)}"
                     supabase.storage.from_("product-images").upload(unique_name, file.read(), {"content-type": file.content_type})
                     res = supabase.storage.from_("product-images").get_public_url(unique_name)
@@ -96,6 +97,7 @@ def admin():
                 product_name=request.form['product_name'],
                 category=request.form['category'],
                 content=request.form['content'], 
+                affiliate_link=request.form.get('affiliate_link'),
                 store1_name=request.form.get('store1_name'), store1_price=request.form.get('store1_price'), store1_link=request.form.get('store1_link'),
                 store2_name=request.form.get('store2_name'), store2_price=request.form.get('store2_price'), store2_link=request.form.get('store2_link'),
                 store3_name=request.form.get('store3_name'), store3_price=request.form.get('store3_price'), store3_link=request.form.get('store3_link')
@@ -105,7 +107,7 @@ def admin():
             return redirect(url_for('home'))
         except Exception as e:
             db.session.rollback()
-            return f"<h1>Upload Error</h1><p>{e}</p><a href='/admin'>Back</a>"
+            return f"<h1>Upload Error</h1><p>{e}</p><a href='/admin'>Go Back</a>"
     return render_template('admin.html', settings=settings)
 
 @app.route('/delete/<int:id>')
