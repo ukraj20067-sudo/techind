@@ -24,7 +24,7 @@ SUPABASE_URL = "https://ovqlghzmdkelxxkehcba.supabase.co"
 SUPABASE_KEY = "sb_publishable_C4pYZQ43SoMUNiwHK6WGAw_gPXyZnLV"
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# --- MODELS ---
+# --- DATABASE MODELS ---
 class Blog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     images = db.Column(db.Text) 
@@ -32,15 +32,17 @@ class Blog(db.Model):
     product_name = db.Column(db.String(100), nullable=False)
     category = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    affiliate_link = db.Column(db.String(500)) # This is the Green "Best Buy" link
+    affiliate_link = db.Column(db.String(500)) # Green Best Buy Button
     
     # Comparison Table Slots
     store1_name = db.Column(db.String(50))
     store1_price = db.Column(db.String(20))
     store1_link = db.Column(db.String(500))
+    
     store2_name = db.Column(db.String(50))
     store2_price = db.Column(db.String(20))
     store2_link = db.Column(db.String(500))
+    
     store3_name = db.Column(db.String(50))
     store3_price = db.Column(db.String(20))
     store3_link = db.Column(db.String(500))
@@ -63,6 +65,7 @@ class User(UserMixin):
 def load_user(uid): return User(uid)
 
 # --- ROUTES ---
+
 @app.route('/')
 def home():
     settings = Settings.query.first()
@@ -87,9 +90,11 @@ def admin():
             for file in files:
                 if file and file.filename != '':
                     unique_name = f"{int(time.time())}_{os.urandom(2).hex()}_{secure_filename(file.filename)}"
-                    supabase.storage.from_("product-images").upload(unique_name, file.read(), {"content-type": file.content_type})
+                    file_data = file.read()
+                    supabase.storage.from_("product-images").upload(unique_name, file_data, {"content-type": file.content_type})
                     res = supabase.storage.from_("product-images").get_public_url(unique_name)
-                    urls.append(res.public_url if hasattr(res, 'public_url') else str(res))
+                    public_url = res.public_url if hasattr(res, 'public_url') else str(res)
+                    urls.append(public_url)
             
             new_post = Blog(
                 images=",".join(urls) if urls else 'https://via.placeholder.com/300',
@@ -107,15 +112,43 @@ def admin():
             return redirect(url_for('home'))
         except Exception as e:
             db.session.rollback()
-            return f"<h1>Upload Error</h1><p>{e}</p><a href='/admin'>Go Back</a>"
+            return f"<h1>Admin Error</h1><p>{str(e)}</p><a href='/admin'>Retry</a>"
     return render_template('admin.html', settings=settings)
 
+# RESTORED EDIT ROUTE
+@app.route('/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit(id):
+    blog = Blog.query.get_or_404(id)
+    if request.method == 'POST':
+        try:
+            blog.title = request.form['title']
+            blog.product_name = request.form['product_name']
+            blog.category = request.form['category']
+            blog.content = request.form['content']
+            blog.affiliate_link = request.form.get('affiliate_link')
+            
+            # Updating store slots
+            blog.store1_name = request.form.get('store1_name')
+            blog.store1_price = request.form.get('store1_price')
+            blog.store1_link = request.form.get('store1_link')
+            
+            db.session.commit()
+            return redirect(url_for('home'))
+        except Exception as e:
+            return f"Edit Error: {e}"
+    return render_template('edit.html', blog=blog)
+
+# RESTORED DELETE ROUTE
 @app.route('/delete/<int:id>')
 @login_required
 def delete(id):
     blog = Blog.query.get_or_404(id)
-    db.session.delete(blog)
-    db.session.commit()
+    try:
+        db.session.delete(blog)
+        db.session.commit()
+    except Exception as e:
+        print(f"Delete error: {e}")
     return redirect(url_for('home'))
 
 @app.route('/admin/settings', methods=['POST'])
@@ -149,3 +182,4 @@ if __name__ == "__main__":
             db.session.add(Settings())
             db.session.commit()
     app.run(debug=True)
+    
